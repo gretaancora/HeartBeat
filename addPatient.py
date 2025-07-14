@@ -12,10 +12,10 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Environment variables
-USER_POOL_ID = 'us-east-1_dPfef9vVU'
+USER_POOL_ID = 'us-east-1_MMIaRW7by'
 PATIENT_GROUP = 'Patient'
-APP_CLIENT_ID = '64ovd5p2lk7s6g7rn08uba9r1r'
-APP_CLIENT_SECRET = 'tt0gp32h91e4dlh6m2cslpe3qvk44riqm3kop5r70tb0p2afne'
+APP_CLIENT_ID = '7behact4mbieppe861t2lc869h'
+APP_CLIENT_SECRET = '371943ja3iknc6pqsj5g77ujj3udae2cngpjqo6jus2vn8qhsrr'
 
 # Initialize AWS Cognito Identity Provider client
 cognito_client = boto3.client('cognito-idp')
