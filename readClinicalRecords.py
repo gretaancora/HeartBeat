@@ -4,7 +4,7 @@ import os
 
 # Inizializza il client DynamoDB
 dynamodb = boto3.client('dynamodb')
-TABLE_NAME = os.environ.get('TABLE_NAME', 'ClinicalRecords')
+TABLE_NAME = os.environ.get('TABLE_NAME')
 
 
 def lambda_handler(event, context):
@@ -13,13 +13,13 @@ def lambda_handler(event, context):
     Restituisce direttamente un JSON puro con 'items' e, se presente, 'lastKey'.
 
     Query parameters via queryStringParameters:
-      - patientID: filtra i record per paziente
+      - patient: filtra i record per paziente
       - limit: numero massimo di elementi da restituire (default: 100)
       - lastKey: chiave di partenza per la paginazione (JSON string)
     """
     try:
         params = event.get('queryStringParameters') or {}
-        patient_id = params.get('patientID')
+        patient_id = params.get('patient')
         limit = int(params.get('limit', '100'))
         last_key = params.get('lastKey')
 
@@ -28,7 +28,7 @@ def lambda_handler(event, context):
         if patient_id:
             query_args = {
                 'TableName': TABLE_NAME,
-                'KeyConditionExpression': 'patientID = :pid',
+                'KeyConditionExpression': 'patient = :pid',
                 'ExpressionAttributeValues': {':pid': {'S': patient_id}},
                 'Limit': limit
             }
