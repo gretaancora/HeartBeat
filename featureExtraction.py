@@ -1,46 +1,61 @@
 import json
-import logging
-from typing import Any, Dict
+from typing import List, Dict, Any
 
-# Configura il logger
-type JsonDict = Dict[str, Any]
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
-def handler(event: JsonDict, context: Any) -> JsonDict:
+def extract_mean_feature(
+    patient_id: str,
+    bpm_values: List[float],
+    age: int = None,
+    sex: str = None,
+    ts: str = None
+) -> Dict[str, Any]:
     """
-    Prima funzione Lambda di un flusso Step Functions.
-    Prende in input un JSON con campi 'patientid' e 'data', moltiplica per 10^3 i valori numerici in 'data'
-    e restituisce in output il patientid e i dati modificati.
-
-    :param event: Dizionario in ingresso, es. {'patientid': 'paziente-123', 'data': {...}}
-    :param context: Contesto Lambda (non utilizzato)
-    :return: Dizionario con 'patientid' e dati processati, es. {'patientid': 'paziente-123', 'data': {...}}
+    Estrae unicamente la media dei BPM inviati e restituisce
+    un payload JSON-ready per la Step Function.
     """
-    # Estrai patientid
-    patient_id = event.get('patientid')
-    if patient_id is None:
-        logger.error("Chiave 'patientid' non trovata nell'evento")
-        raise ValueError("Chiave 'patientid' mancante nell'evento Lambda")
+    count = len(bpm_values)
+    if count == 0:
+        raise ValueError("bpm_values non può essere vuoto")
 
-    # Estrai sezione data
-    raw_data = event.get('data')
-    if raw_data is None or not isinstance(raw_data, dict):
-        logger.error("Chiave 'data' assente o non un dict nell'evento")
-        raise ValueError("Sezione 'data' mancante o in formato errato nell'evento Lambda")
+    bpm_mean = sum(bpm_values) / count
 
-    # Moltiplica ogni valore numerico per 10^3
-    processed: JsonDict = {}
-    for key, value in raw_data.items():
-        if isinstance(value, (int, float)):
-            processed[key] = value * 10**3
-        else:
-            processed[key] = value  # Copia senza modifiche
-
-    logger.info(f"Dati processati per patient {patient_id}: {processed}")
-
-    # Restituisci il patientid e i dati processati
-    return {
-        'patientid': patient_id,
-        'data': processed
+    result: Dict[str, Any] = {
+        'patient_id': patient_id,
+        'bpm_mean': bpm_mean,
+        'bpm_values': str(bpm_values),
+        'ts': ts
     }
+    # Aggiungo metadata opzionali se forniti
+    if age is not None:
+        result['age'] = age
+    if sex is not None:
+        result['sex'] = sex.upper()
+
+    return result
+
+
+def lambda_handler(event, context):
+    """
+    AWS Lambda handler che si aspetta un JSON in `event` con i campi:
+    patient_id, bpm_values, (opzionali: age, sex).
+    Restituisce un dizionario di output con solo il campo bpm_mean.
+    """
+    # Se l'evento è una stringa JSON, parsalo
+    if isinstance(event, str):
+        event = json.loads(event)
+
+    patient_id = event.get('patient_id')
+    bpm_values = event.get('bpm_values', [])
+    age = event.get('age')
+    sex = event.get('sex')
+    ts = event.get('ts')
+
+    if not patient_id or not bpm_values:
+        raise ValueError("patient_id e bpm_values sono obbligatori")
+
+    return extract_mean_feature(
+        patient_id=patient_id,
+        bpm_values=bpm_values,
+        age=age,
+        sex=sex,
+        ts=ts
+    )
