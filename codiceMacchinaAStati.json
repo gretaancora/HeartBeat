@@ -1,0 +1,179 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Lambda Invoke",
+  "States": {
+    "Lambda Invoke": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "arn:aws:lambda:us-east-1:832059618623:function:featuresExtraction:$LATEST",
+        "Payload": "{% $states.input %}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Lambda Invoke (1)"
+    },
+    "Lambda Invoke (1)": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "arn:aws:lambda:us-east-1:832059618623:function:analyze:$LATEST",
+        "Payload": "{% $states.input %}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Choice",
+      "Assign": {
+        "output": "{% $states.result.Payload  %}"
+      }
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "DynamoDB PutItem",
+          "Condition": "{%($output.anomaly = null) or ($output.anomaly = \"normal\")%}"
+        },
+        {
+          "Next": "Parallel",
+          "Condition": "{%($output.anomaly != null) or ($output.anomaly != \"normal\")%}"
+        }
+      ]
+    },
+    "Parallel": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "Lambda Invoke (2)",
+          "States": {
+            "Lambda Invoke (2)": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Output": "{% $states.result.Payload %}",
+              "Arguments": {
+                "FunctionName": "arn:aws:lambda:us-east-1:832059618623:function:patientToDoctor:$LATEST",
+                "Payload": "{% $states.input %}"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2,
+                  "JitterStrategy": "FULL"
+                }
+              ],
+              "Next": "SNS Publish",
+              "Assign": {
+                "output2": "{% $states.result.Payload  %}"
+              }
+            },
+            "SNS Publish": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sns:publish",
+              "Arguments": {
+                "TopicArn": "arn:aws:sns:us-east-1:832059618623:AnomalyNotification",
+                "Message": "{% 'È stata rilevata un’anomalia per il paziente ' & $output2.patient_id & ': ' & $output.anomaly %}",                
+                "MessageAttributes": {
+                  "doctor_id": {
+                    "DataType": "String",
+                    "StringValue": "{% $output2.doctor_id %}"
+                  }
+                }
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "DynamoDB PutItem (1)",
+          "States": {
+            "DynamoDB PutItem (1)": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:putItem",
+              "Arguments": {
+                "TableName": "AnalysisResults",
+                "Item": {
+                  "patient": {
+                    "S": "{% $states.input.patient_id %}"
+                  },
+                  "timestamp": {
+                    "S": "{% $states.input.ts %}"
+                  },
+                  "bpm_values": {
+                    "S": "{% $states.input.bpm_values %}"
+                  },
+                  "bpm_mean": {
+                    "S": "{% $states.input.bpm_mean %}"
+                  },
+                  "anomaly": {
+                    "S": "{% $states.input.anomaly %}"
+                  }
+                }
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "End": true
+    },
+    "DynamoDB PutItem": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Arguments": {
+        "TableName": "AnalysisResults",
+        "Item": {
+          "patient": {
+            "S": "{% $states.input.patient_id %}"
+          },
+          "timestamp": {
+            "S": "{% $states.input.ts %}"
+          },
+          "bpm_values": {
+            "S": "{% $states.input.bpm_values %}"
+          },
+          "bpm_mean": {
+            "S": "{% $states.input.bpm_mean %}"
+          },
+          "anomaly": {
+            "S": "{% $states.input.anomaly %}"
+          }
+        }
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
