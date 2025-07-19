@@ -3,16 +3,16 @@
 import { CognitoIdentityProviderClient, InitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
 import crypto from "crypto";
 
-// Configura la regione (assicurati sia quella giusta)
-const REGION = "us-east-1";
+
+const REGION        = process.env.REGION;
+const USER_POOL_ID  = process.env.USER_POOL_ID;
+const CLIENT_ID     = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
 // Istanzia il client Cognito v3
 const client = new CognitoIdentityProviderClient({ region: REGION });
 
-// Sostituisci questi valori con i tuoi
-const USER_POOL_ID = "us-east-1_MMIaRW7by";
-const CLIENT_ID      = "7behact4mbieppe861t2lc869h";
-const CLIENT_SECRET  = "371943ja3iknc6pqsj5g77ujj3udae2cngpjqo6jus2vn8qhsrr";
+
 
 // Crea hash per autenticazione con client segreto
 function generateSecretHash(username) {
