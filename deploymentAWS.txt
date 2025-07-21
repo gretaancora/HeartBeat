@@ -11,7 +11,7 @@ Passi:
 6. sostituire l'id del pool creato in CognitoTemplate (UserPollId) e sostuire il RoleArn inserendo quello che si userà per la creazione dello stack in Cloudformation
 7. creare stack con nuove risorse da template cognito in cloudformation
 (per cloud formation -> specifica modello: carica un file di modello -> invia)
-8. se si vogliono provare le funzionaliotà dell'admin necessario inserire manualmente in cognito un utente e associargli il ruolo Admin -> farlo tramite client dell'app in cognito e cliccare visualizza la pagina di accesso in modo che l'utente sia già confermato
+8. se si vogliono provare le funzionalità dell'admin necessario inserire manualmente in cognito un utente e associargli il ruolo Admin -> farlo tramite client dell'app in cognito e cliccare visualizza la pagina di accesso in modo che l'utente sia già confermato
 9. creare stack con nuove risorse da template batch bucket in cloudformation
 10. creare stack con nuove risorse da template rest api in cloudformation
 11. in HeartBeatTemplate cambiare ->
