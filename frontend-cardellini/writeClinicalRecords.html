@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analisi e Report Clinici</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .left, .right {
+      padding: 1.5em;
+      box-sizing: border-box;
+    }
+    .left {
+      width: 50%;
+      border-right: 1px solid #ddd;
+    }
+    .right {
+      width: 50%;
+    }
+    label, input, button, textarea {
+      display: block;
+      width: 100%;
+      margin-bottom: 1em;
+      font-size: 1rem;
+    }
+    input, textarea {
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+    button {
+      padding: 0.75em;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #007bff;
+      color: white;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #resultsContainer {
+      max-height: calc(100% - 10em);
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.5em;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    th {
+      background-color: #f5f5f5;
+      position: sticky;
+      top: 0;
+    }
+    #messageLeft, #messageRight {
+      color: red;
+      margin-bottom: 1em;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Left side: Search and results -->
+    <div class="left">
+      <h2>Analysis results</h2>
+      <div id="messageLeft"></div>
+      <label for="patientId">Patient ID</label>
+      <input id="patientId" type="text" placeholder="Enter patient ID" />
+
+      <button id="searchBtn">Search</button>
+
+      <div id="resultsContainer" style="display:none; margin-top:1em;">
+        <table id="resultsTable">
+          <thead>
+            <tr id="tableHeader"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right side: Write clinical report -->
+    <div class="right">
+      <h2>Write clinical report</h2>
+      <div id="messageRight"></div>
+      <label for="reportText">Anomaly description</label>
+      <textarea id="reportText" rows="8" placeholder="Write your description here..."></textarea>
+
+      <button id="postBtn">Post</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const idToken = localStorage.getItem('idToken');
+      if (!idToken) {
+        window.location.replace('login.html');
+        return;
+      }
+
+      // Decodifica JWT per ottenere il doctor username
+      function parseJwt(token) {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join(''));
+          return JSON.parse(jsonPayload);
+        } catch (e) {
+          return {};
+        }
+      }
+      const claims = parseJwt(idToken);
+      const doctor = claims.email || claims['cognito:username'] || claims.sub;
+
+      const messageLeft = document.getElementById('messageLeft');
+      const messageRight = document.getElementById('messageRight');
+
+      function clearLeft() {
+        document.getElementById('tableHeader').innerHTML = '';
+        document.getElementById('tableBody').innerHTML = '';
+        document.getElementById('resultsContainer').style.display = 'none';
+      }
+
+      document.getElementById('searchBtn').addEventListener('click', async () => {
+        messageLeft.textContent = '';
+        clearLeft();
+
+        const patientId = document.getElementById('patientId').value.trim();
+        if (!patientId) {
+          messageLeft.textContent = 'Please enter a patient ID.';
+          return;
+        }
+
+        try {
+          const url = `https://3we4sfdvrh.execute-api.us-east-1.amazonaws.com/dev/doctor/readAnalysisResults?patient=${encodeURIComponent(patientId)}`;
+          const res = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+              'Authorization': 'Bearer ' + idToken
+            }
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || err.message || `HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          const items = data.items || [];
+          if (items.length === 0) {
+            messageLeft.textContent = 'No analysis results found.';
+            return;
+          }
+
+          // Trasforma DynamoDB items in oggetti semplici
+          const rows = items.map(item => {
+            const obj = {};
+            for (const key in item) {
+              const val = item[key];
+              obj[key] = val.S !== undefined ? val.S : (val.N !== undefined ? val.N : '');
+            }
+            return obj;
+          });
+
+          // Costruisci header
+          const headerRow = document.getElementById('tableHeader');
+          const cols = Object.keys(rows[0]);
+          cols.forEach(col => {
+            const th = document.createElement('th');
+            th.textContent = col;
+            headerRow.appendChild(th);
+          });
+          // Costruisci body
+          const body = document.getElementById('tableBody');
+          rows.forEach(r => {
+            const tr = document.createElement('tr');
+            cols.forEach(col => {
+              const td = document.createElement('td');
+              td.textContent = r[col];
+              tr.appendChild(td);
+            });
+            body.appendChild(tr);
+          });
+          document.getElementById('resultsContainer').style.display = 'block';
+        } catch (err) {
+          console.error(err);
+          messageLeft.textContent = err.message;
+        }
+      });
+
+      document.getElementById('postBtn').addEventListener('click', async () => {
+        messageRight.textContent = '';
+        const patientId = document.getElementById('patientId').value.trim();
+        const anomalyDescription = document.getElementById('reportText').value.trim();
+
+        if (!patientId) {
+          messageRight.textContent = 'Please enter a patient ID on the left first.';
+          return;
+        }
+        if (!anomalyDescription) {
+          messageRight.textContent = 'Write a description of the anomaly.';
+          return;
+        }
+
+        try {
+          const res = await fetch(
+            'https://3we4sfdvrh.execute-api.us-east-1.amazonaws.com/dev/doctor/writeClinicalReport',
+            {
+              method: 'PUT',
+              mode: 'cors',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + idToken
+              },
+              body: JSON.stringify({
+                patient: patientId,
+                doctor: doctor,
+                anomalyDescription: anomalyDescription
+              })
+            }
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || data.message || `HTTP ${res.status}`);
+          }
+          messageRight.style.color = 'green';
+          messageRight.textContent = 'Report sent successfully.';
+          document.getElementById('reportText').value = '';
+        } catch (err) {
+          console.error(err);
+          messageRight.style.color = 'red';
+          messageRight.textContent = err.message;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

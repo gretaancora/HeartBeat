@@ -1,0 +1,29 @@
+---
+Metadata:
+  AWSToolsMetrics:
+    IaC_Generator: "arn:aws:cloudformation:us-east-1:832059618623:generatedTemplate/11375079-6333-481c-972d-612cd19e8a35"
+Resources:
+  CognitoUserPoolGroupDoctor:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Cognito::UserPoolGroup"
+    DeletionPolicy: "Delete"
+    Properties:
+      GroupName: "Doctor"
+      RoleArn: "arn:aws:iam::216698350696:role/LabRole"
+      UserPoolId: "us-east-1_wepKhTujE"
+  CognitoUserPoolGroupAdmin:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Cognito::UserPoolGroup"
+    DeletionPolicy: "Delete"
+    Properties:
+      GroupName: "Admin"
+      RoleArn: "arn:aws:iam::216698350696:role/LabRole"
+      UserPoolId: "us-east-1_wepKhTujE"
+  CognitoUserPoolGroupPatient:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Cognito::UserPoolGroup"
+    DeletionPolicy: "Delete"
+    Properties:
+      GroupName: "Patient"
+      RoleArn: "arn:aws:iam::216698350696:role/LabRole"
+      UserPoolId: "us-east-1_wepKhTujE"

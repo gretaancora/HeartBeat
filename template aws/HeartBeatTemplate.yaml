@@ -1,0 +1,1189 @@
+---
+Metadata:
+  AWSToolsMetrics:
+    IaC_Generator: "arn:aws:cloudformation:us-east-1:832059618623:generatedTemplate/e23c7b25-467b-42dc-a8b5-49ac604725bb"
+Parameters:
+  DeploymentBucket:
+    Type: String
+    Default: heart-beat-lambda-deployment
+  AddDeviceKey:
+    Type: String
+    Default: addDevice.zip
+  AddDoctorKey:
+    Type: String
+    Default: addDoctor.zip
+  AddPatientKey:
+    Type: String
+    Default: addPatient.zip
+  AnalyzeKey:
+    Type: String
+    Default: analyze.zip
+  CheckAdminGroupAuthKey:
+    Type: String
+    Default: checkAdminGroupAuth.zip
+  CheckDoctorGroupAuthKey:
+    Type: String
+    Default: checkDoctorGroupAuth.zip
+  CheckPatientGroupAuthKey:
+    Type: String
+    Default: checkPatientGroupAuth.zip
+  FeaturesExtractionKey:
+    Type: String
+    Default: featuresExtraction.zip
+  LoginKey:
+    Type: String
+    Default: login.zip
+  PatientReadClinicalRecordsKey:
+    Type: String
+    Default: patientReadClinicalRecords.zip
+  PatientToDoctorKey:
+    Type: String
+    Default: patientToDoctor.zip
+  ReadAnalisysResultsKey:
+    Type: String
+    Default: readAnalisysResults.zip
+  ReadClinicalRecordsKey:
+    Type: String
+    Default: readClinicalRecords.zip
+  SendToSQSKey:
+    Type: String
+    Default: sendToSQS.zip
+  SendToStepFunctionKey:
+    Type: String
+    Default: sendToStepFunction.zip
+  SplitBatchDataKey:
+    Type: String
+    Default: splitBatchData.zip
+  WriteClinicalRecordsKey:
+    Type: String
+    Default: writeClinicalRecords.zip
+
+Resources:
+  LambdaPermissionFunctionlogin:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionLogin
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/POST/login"
+      Principal: "apigateway.amazonaws.com"
+  LambdaFunctionAddDoctor:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+       S3Bucket:
+        Ref: DeploymentBucket
+       S3Key:
+        Ref: AddDoctorKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "addDoctor"
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/addDoctor"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          APP_CLIENT_ID: "23vrh7qtcql2p7t06plrc0gnur"
+          APP_CLIENT_SECRET: "2ddvdc77r7f5b038phog4e8h8n52noggk95tv4j8ut0qr9vmfoq"
+          USER_POOL_ID: "us-east-1_wepKhTujE"
+          REGION: "us-east-1"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  SQSQueueBpmValuesfifo:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::SQS::Queue"
+    DeletionPolicy: "Delete"
+    Properties:
+      ReceiveMessageWaitTimeSeconds: 0
+      SqsManagedSseEnabled: true
+      FifoThroughputLimit: "perMessageGroupId"
+      DelaySeconds: 0
+      FifoQueue: true
+      MessageRetentionPeriod: 1800
+      MaximumMessageSize: 262144
+      DeduplicationScope: "messageGroup"
+      VisibilityTimeout: 30
+      ContentBasedDeduplication: false
+      QueueName: "bpmValues.fifo"
+  LambdaPermissionFunctionsendToSQSId:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionSendToSQS
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:iot:us-east-1:216698350696:rule/triggerLambdaToSQS"
+      Principal: "iot.amazonaws.com"
+  LambdaPermissionFunctionaddDevice:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionAddDevice
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/PUT/patient/addDevice"
+      Principal: "apigateway.amazonaws.com"
+  LambdaFunctionAnalyze:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+       S3Bucket:
+        Ref: DeploymentBucket
+       S3Key:
+        Ref: AnalyzeKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "analyze"
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/analyze"
+      RecursiveLoop: "Terminate"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaFunctionFeaturesExtraction:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: FeaturesExtractionKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "featuresExtraction"
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/featuresExtraction"
+      RecursiveLoop: "Terminate"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaPermissionFunctionreadClinicalRecordsYB:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionPatientReadClinicalRecords
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/GET/patient/readClinicalRecords"
+      Principal: "apigateway.amazonaws.com"
+  LambdaFunctionCheckPatientGroupAuth:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "index.handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: CheckPatientGroupAuthKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "checkPatientGroupAuth"
+      Runtime: "nodejs18.x"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/checkPatientGroupAuth"
+      RecursiveLoop: "Terminate"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  IoTTopicRuleIoTSimulatorToSQS:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::IoT::TopicRule"
+    DeletionPolicy: "Delete"
+    Properties:
+      RuleName: "IoT_Simulator_To_SQS"
+      Tags: []
+      TopicRulePayload:
+        RuleDisabled: false
+        Description: ""
+        AwsIotSqlVersion: "2016-03-23"
+        Actions:
+        - Lambda:
+            FunctionArn:
+              Fn::GetAtt:
+              - "LambdaFunctionSendToSQS"
+              - "Arn"
+        Sql: "SELECT * FROM 'IoTSimulator/bpm'"
+  IoTPolicy:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::IoT::Policy"
+    DeletionPolicy: "Delete"
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - "arn:aws:iot:us-east-1:216698350696:client/IoTSimulator"
+          - "arn:aws:iot:us-east-1:216698350696:topic/IoTSimulator/bpm"
+          - "arn:aws:iot:us-east-1:216698350696:topicfilter/IoTSimulator/bpm"
+          Action:
+          - "iot:Connect"
+          - "iot:Publish"
+          - "iot:Subscribe"
+          - "iot:Receive"
+          Effect: "Allow"
+      Tags: []
+      PolicyName: "IoTSimulator"
+  LambdaEventSourceMapping:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::EventSourceMapping"
+    DeletionPolicy: "Delete"
+    Properties:
+      BatchSize: 10
+      FunctionName: "sendToStepFunction"
+      Enabled: true
+      EventSourceArn:
+        Fn::GetAtt:
+        - "SQSQueueBpmValuesfifo"
+        - "Arn"
+      Tags: []
+      FunctionResponseTypes:
+      - "ReportBatchItemFailures"
+      MetricsConfig:
+        Metrics: []
+      MaximumBatchingWindowInSeconds: 0
+  DynamoDBTableClinicalRecords:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: "Delete"
+    Properties:
+      SSESpecification:
+        SSEEnabled: false
+      TableName: "ClinicalRecords"
+      AttributeDefinitions:
+      - AttributeType: "S"
+        AttributeName: "patient"
+      - AttributeType: "S"
+        AttributeName: "timestamp"
+      ContributorInsightsSpecification:
+        Enabled: false
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      WarmThroughput:
+        ReadUnitsPerSecond: 12000
+        WriteUnitsPerSecond: 4000
+      KeySchema:
+      - KeyType: "HASH"
+        AttributeName: "patient"
+      - KeyType: "RANGE"
+        AttributeName: "timestamp"
+      DeletionProtectionEnabled: false
+      TableClass: "STANDARD"
+      Tags: []
+      TimeToLiveSpecification:
+        Enabled: false
+  LambdaPermissionFunctionreadClinicalRecords:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionReadClinicalRecords
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/GET/doctor/readClinicalRecords"
+      Principal: "apigateway.amazonaws.com"
+  StepFunctionsStateMachineStateMachineAnalyzeStateMachine:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::StepFunctions::StateMachine"
+    DeletionPolicy: "Delete"
+    Properties:
+      DefinitionString: "{\"Comment\":\"A description of my state machine\",\"StartAt\"\
+        :\"Lambda Invoke\",\"States\":{\"Lambda Invoke\":{\"Type\":\"Task\",\"Resource\"\
+        :\"arn:aws:states:::lambda:invoke\",\"Output\":\"{% $states.result.Payload\
+        \ %}\",\"Arguments\":{\"FunctionName\":\"arn:aws:lambda:us-east-1:216698350696:function:featuresExtraction:$LATEST\"\
+        ,\"Payload\":\"{% $states.input %}\"},\"Retry\":[{\"ErrorEquals\":[\"Lambda.ServiceException\"\
+        ,\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\",\"Lambda.TooManyRequestsException\"\
+        ],\"IntervalSeconds\":1,\"MaxAttempts\":3,\"BackoffRate\":2,\"JitterStrategy\"\
+        :\"FULL\"}],\"Next\":\"Lambda Invoke (1)\"},\"Lambda Invoke (1)\":{\"Type\"\
+        :\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\",\"Output\":\"{%\
+        \ $states.result.Payload %}\",\"Arguments\":{\"FunctionName\":\"arn:aws:lambda:us-east-1:216698350696:function:analyze:$LATEST\"\
+        ,\"Payload\":\"{% $states.input %}\"},\"Retry\":[{\"ErrorEquals\":[\"Lambda.ServiceException\"\
+        ,\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\",\"Lambda.TooManyRequestsException\"\
+        ],\"IntervalSeconds\":1,\"MaxAttempts\":3,\"BackoffRate\":2,\"JitterStrategy\"\
+        :\"FULL\"}],\"Next\":\"Choice\",\"Assign\":{\"output\":\"{% $states.result.Payload\
+        \  %}\"}},\"Choice\":{\"Type\":\"Choice\",\"Choices\":[{\"Next\":\"DynamoDB\
+        \ PutItem\",\"Condition\":\"{%($output.anomaly = null) or ($output.anomaly\
+        \ = \\\"normal\\\")%}\"},{\"Next\":\"Parallel\",\"Condition\":\"{%($output.anomaly\
+        \ != null) or ($output.anomaly != \\\"normal\\\")%}\"}]},\"Parallel\":{\"\
+        Type\":\"Parallel\",\"Branches\":[{\"StartAt\":\"Lambda Invoke (2)\",\"States\"\
+        :{\"Lambda Invoke (2)\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::lambda:invoke\"\
+        ,\"Output\":\"{% $states.result.Payload %}\",\"Arguments\":{\"FunctionName\"\
+        :\"arn:aws:lambda:us-east-1:216698350696:function:patientToDoctor:$LATEST\"\
+        ,\"Payload\":\"{% $states.input %}\"},\"Retry\":[{\"ErrorEquals\":[\"Lambda.ServiceException\"\
+        ,\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\",\"Lambda.TooManyRequestsException\"\
+        ],\"IntervalSeconds\":1,\"MaxAttempts\":3,\"BackoffRate\":2,\"JitterStrategy\"\
+        :\"FULL\"}],\"Next\":\"SNS Publish\",\"Assign\":{\"output2\":\"{% $states.result.Payload\
+        \  %}\"}},\"SNS Publish\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::sns:publish\"\
+        ,\"Arguments\":{\"TopicArn\":\"arn:aws:sns:us-east-1:216698350696:AnomalyNotification\"\
+        ,\"Message\":\"{% 'An anomaly has been detected for the patient ' & $output2.patient_id\
+        \ & ': ' & $output.anomaly %}\",\"MessageAttributes\":{\"doctor_id\":{\"DataType\"\
+        :\"String\",\"StringValue\":\"{% $output2.doctor_id %}\"}}},\"End\":true}}},{\"\
+        StartAt\":\"DynamoDB PutItem (1)\",\"States\":{\"DynamoDB PutItem (1)\":{\"\
+        Type\":\"Task\",\"Resource\":\"arn:aws:states:::dynamodb:putItem\",\"Arguments\"\
+        :{\"TableName\":\"AnalysisResults\",\"Item\":{\"patient\":{\"S\":\"{% $states.input.patient_id\
+        \ %}\"},\"timestamp\":{\"S\":\"{% $states.input.ts %}\"},\"bpm_values\":{\"\
+        S\":\"{% $states.input.bpm_values %}\"},\"bpm_mean\":{\"S\":\"{% $states.input.bpm_mean\
+        \ %}\"},\"anomaly\":{\"S\":\"{% $states.input.anomaly %}\"}}},\"End\":true}}}],\"\
+        End\":true},\"DynamoDB PutItem\":{\"Type\":\"Task\",\"Resource\":\"arn:aws:states:::dynamodb:putItem\"\
+        ,\"Arguments\":{\"TableName\":\"AnalysisResults\",\"Item\":{\"patient\":{\"\
+        S\":\"{% $states.input.patient_id %}\"},\"timestamp\":{\"S\":\"{% $states.input.ts\
+        \ %}\"},\"bpm_values\":{\"S\":\"{% $states.input.bpm_values %}\"},\"bpm_mean\"\
+        :{\"S\":\"{% $states.input.bpm_mean %}\"},\"anomaly\":{\"S\":\"{% $states.input.anomaly\
+        \ %}\"}}},\"End\":true}},\"QueryLanguage\":\"JSONata\"}"
+      EncryptionConfiguration:
+        Type: "AWS_OWNED_KEY"
+      LoggingConfiguration:
+        IncludeExecutionData: false
+        Level: "OFF"
+      StateMachineName: "AnalyzeStateMachine"
+      RoleArn: "arn:aws:iam::216698350696:role/LabRole"
+      Tags: []
+      StateMachineType: "STANDARD"
+      TracingConfiguration:
+        Enabled: false
+  LambdaFunctionPatientReadClinicalRecords:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: PatientReadClinicalRecordsKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "patientReadClinicalRecords"
+      Runtime: "python3.13"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/patientReadClinicalRecords"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          CLINICAL_RECORDS_TABLE: "ClinicalRecords"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  IoTCertificateVm:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::IoT::Certificate"
+    DeletionPolicy: "Delete"
+    Properties:
+      Status: "ACTIVE"
+      CertificateMode: "DEFAULT"
+      CertificateSigningRequest: "-----BEGIN CERTIFICATE REQUEST-----\nMIICaDCCAVACAQAwIzERMA8GA1UEAwwITXlEZXZpY2UxDjAMBgNVBAoMBU15T3Jn\n\
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArM0ICPMXUyIJqnWNQRc5\ngU/v8sUyWPgbIftLsmmWpjjaTAajg2+5jZ9BhlO/7jMTD6jrnoFs3GzBcqeW4aLH\n\
+        Sk8NqC+FJJ8dttzVEo1DYT0PKl+pq9Eja1dwWQhqFVaX11itnZVjI5iUt8plG5JB\nxXhnjbGgptpTl7xFd3vHBnLaC/iwiCxiVn/yM2oOxhqsKXyxpIManJNMb0vOga9S\n\
+        RlhZDc0qGwFOHK/7hLYotarmf+pLU2oxuqbkmwU4T+W3o7nI8tmYySTHPTbgRgZ1\nv9PUrA/U6yypMbK/gv50+6Xq26c4k3yvDO+ggk4upG//3F+S1RZ0+rAi2qIQQGlN\n\
+        wwIDAQABoAAwDQYJKoZIhvcNAQELBQADggEBAHnFs/HDlOM+cFA50B3MdVUabVEl\nELOy4vY82YEcf+/mN4kNmT5uLb6jyuklZou2yt1uxm+iQbKldwa7VDoU/lI8Qx7Y\n\
+        q47BMs16RYKNbD1DXnRrHgbJrqgIBTGNV0W64TBk9Cqwgic99ob5lN5HTT+YEYcI\nmvsuE4bSSP4ErFr8l9SCHsV5seyEB67X56pRcE4TrAC+U5W/D0XJItuVGGZ/8f/m\n\
+        nmCadZFqBf8FFfa2VXGD4xHr+HXdjTWFmK93usNAGu+y2PIPavzS7Em+cA8WvnCh\n1T4ZULqR9sRRSJnk+ku2G9enBiuiHk5B9yrNegDZBTuRbnYwyCWcNu1Gtu8=\n\
+        -----END CERTIFICATE REQUEST-----\n"
+  SQSQueueECGTracesfifo:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::SQS::Queue"
+    DeletionPolicy: "Delete"
+    Properties:
+      ReceiveMessageWaitTimeSeconds: 0
+      SqsManagedSseEnabled: true
+      FifoThroughputLimit: "perQueue"
+      DelaySeconds: 0
+      FifoQueue: true
+      MessageRetentionPeriod: 1800
+      MaximumMessageSize: 262144
+      DeduplicationScope: "queue"
+      VisibilityTimeout: 30
+      ContentBasedDeduplication: false
+      QueueName: "ECGTraces.fifo"
+  LambdaPermissionFunctionsendToSQS:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionSendToSQS
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn:
+        Fn::GetAtt:
+        - "IoTTopicRuleIoTSimulatorToSQS"
+        - "Arn"
+      Principal: "iot.amazonaws.com"
+  LambdaFunctionAddDevice:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "index.handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: AddDeviceKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "addDevice"
+      Runtime: "nodejs18.x"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/addDevice"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          IOT_PATIENT_TABLE: "IoTPatient"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  S3BucketFrontendheartbeat:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: "Delete"
+    Properties:
+      WebsiteConfiguration:
+        IndexDocument: "login.html"
+      PublicAccessBlockConfiguration:
+        RestrictPublicBuckets: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        BlockPublicAcls: false
+      BucketName: "frontend-heartbeat-copy"
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: "BucketOwnerPreferred"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: true
+          ServerSideEncryptionByDefault:
+            SSEAlgorithm: "AES256"
+  IoTThingIoTSimulator:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::IoT::Thing"
+    DeletionPolicy: "Delete"
+    Properties:
+      AttributePayload: {}
+      ThingName: "IoTSimulator"
+  LambdaFunctionReadClinicalRecords:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:        
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: ReadClinicalRecordsKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "readClinicalRecords"
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/readClinicalRecords"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          DOCTOR_PATIENT_TABLE: "DoctorPatient"
+          CLINICAL_RECORDS_TABLE: "ClinicalRecords"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  DynamoDBTableDoctorPatient:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: "Delete"
+    Properties:
+      SSESpecification:
+        SSEEnabled: false
+      TableName: "DoctorPatient"
+      AttributeDefinitions:
+      - AttributeType: "S"
+        AttributeName: "doctor"
+      - AttributeType: "S"
+        AttributeName: "patient"
+      ContributorInsightsSpecification:
+        Enabled: false
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      WarmThroughput:
+        ReadUnitsPerSecond: 12000
+        WriteUnitsPerSecond: 4000
+      KeySchema:
+      - KeyType: "HASH"
+        AttributeName: "patient"
+      - KeyType: "RANGE"
+        AttributeName: "doctor"
+      DeletionProtectionEnabled: false
+      TableClass: "STANDARD"
+      Tags: []
+      TimeToLiveSpecification:
+        Enabled: false
+  LambdaPermissionFunctionaddPatient:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionAddPatient
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/POST/doctor/addPatient"
+      Principal: "apigateway.amazonaws.com"
+  IoTCertificate:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::IoT::Certificate"
+    DeletionPolicy: "Delete"
+    Properties:
+      Status: "ACTIVE"
+      CertificateMode: "DEFAULT"
+      CertificateSigningRequest: "-----BEGIN CERTIFICATE REQUEST-----\nMIICaDCCAVACAQAwIzERMA8GA1UEAwwITXlEZXZpY2UxDjAMBgNVBAoMBU15T3Jn\n\
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArM0ICPMXUyIJqnWNQRc5\ngU/v8sUyWPgbIftLsmmWpjjaTAajg2+5jZ9BhlO/7jMTD6jrnoFs3GzBcqeW4aLH\n\
+        Sk8NqC+FJJ8dttzVEo1DYT0PKl+pq9Eja1dwWQhqFVaX11itnZVjI5iUt8plG5JB\nxXhnjbGgptpTl7xFd3vHBnLaC/iwiCxiVn/yM2oOxhqsKXyxpIManJNMb0vOga9S\n\
+        RlhZDc0qGwFOHK/7hLYotarmf+pLU2oxuqbkmwU4T+W3o7nI8tmYySTHPTbgRgZ1\nv9PUrA/U6yypMbK/gv50+6Xq26c4k3yvDO+ggk4upG//3F+S1RZ0+rAi2qIQQGlN\n\
+        wwIDAQABoAAwDQYJKoZIhvcNAQELBQADggEBAHnFs/HDlOM+cFA50B3MdVUabVEl\nELOy4vY82YEcf+/mN4kNmT5uLb6jyuklZou2yt1uxm+iQbKldwa7VDoU/lI8Qx7Y\n\
+        q47BMs16RYKNbD1DXnRrHgbJrqgIBTGNV0W64TBk9Cqwgic99ob5lN5HTT+YEYcI\nmvsuE4bSSP4ErFr8l9SCHsV5seyEB67X56pRcE4TrAC+U5W/D0XJItuVGGZ/8f/m\n\
+        nmCadZFqBf8FFfa2VXGD4xHr+HXdjTWFmK93usNAGu+y2PIPavzS7Em+cA8WvnCh\n1T4ZULqR9sRRSJnk+ku2G9enBiuiHk5B9yrNegDZBTuRbnYwyCWcNu1Gtu8=\n\
+        -----END CERTIFICATE REQUEST-----\n"
+  SNSTopicAnomalyNotification:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::SNS::Topic"
+    DeletionPolicy: "Delete"
+    Properties:
+      FifoTopic: false
+      Subscription:
+      - Endpoint: "nico.violans@gmail.com"
+        Protocol: "email"
+      TopicName: "AnomalyNotification"
+  LambdaPermissionFunctionsplitBatchData:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionSplitBatchData
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:s3:::batchdataheartbeatcopy"
+      Principal: "s3.amazonaws.com"
+      SourceAccount: "216698350696"
+  LambdaFunctionSendToSQS:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: SendToSQSKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "sendToSQS"
+      Runtime: "python3.13"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/sendToSQS"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/216698350696/bpmValues.fifo"
+          IOT_PATIENT_TABLE: "IoTPatient"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaPermissionFunctionreadAnalisysResults:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionReadAnalisysResults
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/GET/doctor/readAnalysisResults"
+      Principal: "apigateway.amazonaws.com"
+  LambdaFunctionReadAnalisysResults:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: ReadAnalisysResultsKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "readAnalisysResults"
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/readAnalisysResults"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          DOCTOR_PATIENT_TABLE: "DoctorPatient"
+          ANALYSIS_RESULTS_TABLE: "AnalysisResults"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaPermissionFunctionaddDoctor:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionAddDoctor
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/POST/admin/addDoctor"
+      Principal: "apigateway.amazonaws.com"
+  DynamoDBTableAnalysisResults:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: "Delete"
+    Properties:
+      SSESpecification:
+        SSEEnabled: false
+      TableName: "AnalysisResults"
+      AttributeDefinitions:
+      - AttributeType: "S"
+        AttributeName: "patient"
+      - AttributeType: "S"
+        AttributeName: "timestamp"
+      ContributorInsightsSpecification:
+        Enabled: false
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      WarmThroughput:
+        ReadUnitsPerSecond: 12000
+        WriteUnitsPerSecond: 4000
+      KeySchema:
+      - KeyType: "HASH"
+        AttributeName: "patient"
+      - KeyType: "RANGE"
+        AttributeName: "timestamp"
+      DeletionProtectionEnabled: false
+      TableClass: "STANDARD"
+      Tags: []
+      TimeToLiveSpecification:
+        Enabled: false
+  LambdaPermissionFunctioncheckPatientGroupAuth:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionCheckPatientGroupAuth
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/authorizers/vy1o5f"
+      Principal: "apigateway.amazonaws.com"
+  LambdaFunctionPatientToDoctor:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: PatientToDoctorKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "patientToDoctor"
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/patientToDoctor"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          DOCTOR_PATIENT_TABLE: "DoctorPatient"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaFunctionSendToStepFunction:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: SendToStepFunctionKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "sendToStepFunction"
+      Runtime: "python3.13"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/sendToStepFunction"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          PATIENT_TABLE: "Patient"
+          STATE_MACHINE_ARN: "arn:aws:states:us-east-1:216698350696:stateMachine:AnalyzeStateMachine"
+          IOT_PATIENT_TABLE: "IoTPatient"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  DynamoDBTableIoTPatient:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: "Delete"
+    Properties:
+      SSESpecification:
+        SSEEnabled: false
+      TableName: "IoTPatient"
+      AttributeDefinitions:
+      - AttributeType: "S"
+        AttributeName: "deviceId"
+      ContributorInsightsSpecification:
+        Enabled: false
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      WarmThroughput:
+        ReadUnitsPerSecond: 12000
+        WriteUnitsPerSecond: 4000
+      KeySchema:
+      - KeyType: "HASH"
+        AttributeName: "deviceId"
+      DeletionProtectionEnabled: false
+      TableClass: "STANDARD"
+      Tags: []
+      TimeToLiveSpecification:
+        Enabled: false
+  LambdaFunctionAddPatient:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "index.handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: AddPatientKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "addPatient"
+      Runtime: "nodejs18.x"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/addPatient"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          PATIENT_GROUP: "Patient"
+          PATIENT_TABLE: "Patient"
+          APP_CLIENT_ID: "23vrh7qtcql2p7t06plrc0gnur"
+          APP_CLIENT_SECRET: "2ddvdc77r7f5b038phog4e8h8n52noggk95tv4j8ut0qr9vmfoq"
+          USER_POOL_ID: "us-east-1_wepKhTujE"
+          DOCTOR_PATIENT_TABLE: "DoctorPatient"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaFunctionCheckDoctorGroupAuth:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "index.handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: CheckDoctorGroupAuthKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "checkDoctorGroupAuth"
+      Runtime: "nodejs18.x"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/checkDoctorGroupAuth"
+      RecursiveLoop: "Terminate"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  DynamoDBTablePatient:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: "Delete"
+    Properties:
+      SSESpecification:
+        SSEEnabled: false
+      TableName: "Patient"
+      AttributeDefinitions:
+      - AttributeType: "S"
+        AttributeName: "patientId"
+      ContributorInsightsSpecification:
+        Enabled: false
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      WarmThroughput:
+        ReadUnitsPerSecond: 12000
+        WriteUnitsPerSecond: 4000
+      KeySchema:
+      - KeyType: "HASH"
+        AttributeName: "patientId"
+      DeletionProtectionEnabled: false
+      TableClass: "STANDARD"
+      Tags: []
+      TimeToLiveSpecification:
+        Enabled: false
+  LambdaFunctionWriteClinicalRecords:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: WriteClinicalRecordsKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "writeClinicalRecords"
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/writeClinicalRecords"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          DOCTOR_PATIENT_TABLE: "DoctorPatient"
+          CLINICAL_RECORDS_TABLE: "ClinicalRecords"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaPermissionFunctioncheckDoctorGroupAuth:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionCheckDoctorGroupAuth
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/authorizers/bxfy2z"
+      Principal: "apigateway.amazonaws.com"
+  LambdaFunctionSplitBatchData:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: SplitBatchDataKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "splitBatchData"
+      Runtime: "python3.13"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/splitBatchData"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          PATIENT_TABLE: "Patient"
+          STATE_MACHINE_ARN: "arn:aws:states:us-east-1:216698350696:stateMachine:AnalyzeStateMachine"
+          IOT_PATIENT_TABLE: "IoTPatient"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaFunctionLogin:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "index.handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: LoginKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "login"
+      Runtime: "nodejs18.x"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/login"
+      RecursiveLoop: "Terminate"
+      Environment:
+        Variables:
+          APP_CLIENT_SECRET: "2ddvdc77r7f5b038phog4e8h8n52noggk95tv4j8ut0qr9vmfoq"
+          APP_CLIENT_ID: "23vrh7qtcql2p7t06plrc0gnur"
+          USER_POOL_ID: "us-east-1_wepKhTujE"
+          REGION: "us-east-1"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaPermissionFunctioncheckAdminGroupAuth:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionCheckAdminGroupAuth
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/authorizers/gshixv"
+      Principal: "apigateway.amazonaws.com"
+  LambdaFunctionCheckAdminGroupAuth:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Function"
+    DeletionPolicy: "Delete"
+    Properties:
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "index.handler"
+      Code:
+        S3Bucket:
+          Ref: DeploymentBucket
+        S3Key:
+          Ref: CheckAdminGroupAuthKey
+      Role: "arn:aws:iam::216698350696:role/LabRole"
+      FileSystemConfigs: []
+      FunctionName: "checkAdminGroupAuth"
+      Runtime: "nodejs18.x"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: "/aws/lambda/checkAdminGroupAuth"
+      RecursiveLoop: "Terminate"
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  LambdaPermissionFunctionpatientReadClinicalRecords:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionPatientReadClinicalRecords
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/GET/patient/readClinicalRecords"
+      Principal: "apigateway.amazonaws.com"
+  LambdaPermissionFunctionwriteClinicalRecords:
+    UpdateReplacePolicy: "Delete"
+    Type: "AWS::Lambda::Permission"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaFunctionWriteClinicalRecords
+          - Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/*/PUT/doctor/writeClinicalReport"
+      Principal: "apigateway.amazonaws.com"

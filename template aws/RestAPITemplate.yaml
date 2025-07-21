@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "CloudFormation template per HeartBeatAPI con singolo deployment e stage separato"
+
+Parameters:
+  DeployTimestamp:
+    Type: String
+    Description: "Parametro per forzare il redeploy (inserisci un timestamp o un token univoco ogni volta che vuoi un nuovo deployment)"
+    Default: ""
+
+Resources:
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Properties:
+      Name: HeartBeatAPI
+      ApiKeySourceType: HEADER
+      EndpointConfiguration:
+        IpAddressType: ipv4
+        Types:
+          - REGIONAL
+      DisableExecuteApiEndpoint: false
+      Body:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: s3://heart-beat-rest-api/HeartBeatAPI-dev-swagger-apigateway.json
+
+  # === Deployment unico con parametro di invalidazione ===
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      Description: !Sub "Deploy triggered at ${DeployTimestamp}"
+
+  # === Stage separato collegato al deployment ===
+  ApiGatewayStageDev:
+    Type: AWS::ApiGateway::Stage
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      StageName: dev
+      RestApiId: !Ref ApiGatewayRestApi
+      DeploymentId: !Ref ApiGatewayDeployment
+      CacheClusterEnabled: false
+      CacheClusterSize: '0.5'
+      TracingEnabled: false
