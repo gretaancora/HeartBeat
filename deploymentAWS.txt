@@ -1,0 +1,41 @@
+Passi:
+1. creare bucket e caricarci zip lambda -> heart-beat-lambda-deployment (lasciare tutte le impostazioni di default)
+2. nel file swagger cercare id 832059618623 e sostituirci il proprio
+3. creare bucket rest api e caricarci lo swagger -> heart-beat-rest-api (lasciare tutte le impostazioni di default)
+4. creare pool di utenti cognito ->
+	+ applicazione web tradizionale
+	+ nome dell'applicazione -> HeartBeat
+	+ opzioni per gli identificativi di accesso -> email
+	+ attributi richiesti per l'accesso -> email
+5. in cognito -> client dell'app -> modifica -> abilitare tutti i flussi di autentuicazione -> salva le modifiche
+6. sostituire l'id del pool creato in CognitoTemplate (UserPollId) e sostuire il RoleArn inserendo quello che si userà per la creazione dello stack in Cloudformation
+7. creare stack con nuove risorse da template cognito in cloudformation
+(per cloud formation -> specifica modello: carica un file di modello -> invia)
+8. se si vogliono provare le funzionaliotà dell'admin necessario inserire manualmente in cognito un utente e associargli il ruolo Admin -> farlo tramite client dell'app in cognito e cliccare visualizza la pagina di accesso in modo che l'utente sia già confermato
+9. creare stack con nuove risorse da template batch bucket in cloudformation
+10. creare stack con nuove risorse da template rest api in cloudformation
+11. in HeartBeatTemplate cambiare ->
+	+ arn del ruolo con cui si vogliono istanziare i servizi
+	+ cercare id 832059618623 e sostituirci il proprio
+	+ va specificato endpoit per rule sns
+	+ mettere i nuovi pool id, client id e client secret nelle variabili d'ambiente delle lambda
+	+ inserire arn dell'api creata
+	+ per le funzioni checkPatientGroupAuth, checkDoctorGroupAuth e checkAdminGroupAuth in SourceArn: "arn:aws:execute-api:us-east-1:832059618623:868ccyrv02/authorizers/w9sbec" 
+	  sostituire a 832059618623 il proprio id, a 868ccyrv02 l'id dell'api e a w9sbec l'id dell'autorizzazione dello specifico authorizer
+12. creare stack con nuove risorse da template heart beat in cloudformation
+13. aggiungere manualmente trigger s3 per la funziona lambda splitBatchData -> 
+	+ su splitBatchData cliccare pulsante "aggiungi trigger"
+	+ selezionare s3
+	+ selezionare bucket "batchdataheartbeatcopy"
+	+ selezionare tipo di evento PUT
+	+ accettare utilizzo bucket s3 sia per input che per output
+13. modificare l'http delle chiamate ad api gateway negli html
+14. inserire gli html nel bucket di forntend, selezionarli tutti e tramite operazioni rendere tutte le schermate pubbliche utilizzando acl
+15. se si vuole testare lo script streamingMQTT.py
+	+ generare e scaricare i certificati per l'oggetto già istanziato
+	+ rinominare i certificati come segue certificato del dispositivo -> device-cert.pem, file della chiave privata -> device-key.pem, certificazione root amazon 1 -> root-CA.pem
+	+ collegare la policy IoTSimulator al certificato
+	+ modificare l'endpoint nello script con quello creato in iot core
+	+ lanciare lo script da una directory contente anche i certificati
+	+ OSS: affinché i dati dello script vengano elaborati deve essereci una entry nella tabella dynamo IoTPatient in cui deviceId=IoTSimulator
+16. se si vuole testare lo script batchMQTT.py lanciarlo all'interno di cloudshell
