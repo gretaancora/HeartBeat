@@ -20,8 +20,8 @@ Passi:
 	+ va specificato endpoit per rule sns
 	+ mettere i nuovi pool id, client id e client secret nelle variabili d'ambiente delle lambda
 	+ inserire arn dell'api creata
-	+ per le funzioni checkPatientGroupAuth, checkDoctorGroupAuth e checkAdminGroupAuth in SourceArn: "arn:aws:execute-api:us-east-1:832059618623:868ccyrv02/authorizers/w9sbec" 
-	  sostituire a 832059618623 il proprio id, a 868ccyrv02 l'id dell'api e a w9sbec l'id dell'autorizzazione dello specifico authorizer
+	+ per le funzioni checkPatientGroupAuth, checkDoctorGroupAuth e checkAdminGroupAuth in SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/authorizers/vy1o5f" 
+	  sostituire a 216698350696 il proprio id, a 3we4sfdvrh l'id dell'api e a vy1o5f l'id dell'autorizzazione dello specifico authorizer
 12. creare stack con nuove risorse da template heart beat in cloudformation
 13. aggiungere manualmente trigger s3 per la funziona lambda splitBatchData -> 
 	+ su splitBatchData cliccare pulsante "aggiungi trigger"
