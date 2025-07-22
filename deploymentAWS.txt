@@ -16,7 +16,7 @@ Passi:
 10. creare stack con nuove risorse da template rest api in cloudformation
 11. in HeartBeatTemplate cambiare ->
 	+ arn del ruolo con cui si vogliono istanziare i servizi
-	+ cercare id 832059618623 e sostituirci il proprio
+	+ cercare id 216698350696 e sostituirci il proprio
 	+ va specificato endpoit per rule sns
 	+ mettere i nuovi pool id, client id e client secret nelle variabili d'ambiente delle lambda
 	+ inserire arn dell'api creata
