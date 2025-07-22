@@ -17,7 +17,6 @@ Passi:
 11. in HeartBeatTemplate cambiare ->
 	+ arn del ruolo con cui si vogliono istanziare i servizi
 	+ cercare id 216698350696 e sostituirci il proprio
-	+ va specificato endpoit per rule sns
 	+ mettere i nuovi pool id, client id e client secret nelle variabili d'ambiente delle lambda
 	+ inserire arn dell'api creata
 	+ per le funzioni checkPatientGroupAuth, checkDoctorGroupAuth e checkAdminGroupAuth in SourceArn: "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/authorizers/vy1o5f" 
