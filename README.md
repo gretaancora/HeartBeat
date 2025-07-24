@@ -20,6 +20,7 @@ Steps to deploy:
 6. Replace the pool ID you created in Cognito in CognitoTemplate (UserPoolId) and replace the RoleArn by putting the one you will use for creating the stack in CloudFormation
 
 7. Create a stack with the new resources from the CognitoTemplate in CloudFormation
+
 Note: for CloudFormation -> Template source: upload a template file -> submit
 
 9. If you want to test the admin features you need to manually add a user to Cognito and assign them the Admin role -> do this via the app client in Cognito and click “View sign-in page” so that the user is already confirmed
