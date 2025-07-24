@@ -23,13 +23,13 @@ Steps to deploy:
 
 Note: for CloudFormation -> Template source: upload a template file -> submit
 
-9. If you want to test the admin features you need to manually add a user to Cognito and assign them the Admin role -> do this via the app client in Cognito and click “View sign-in page” so that the user is already confirmed
+8. If you want to test the admin features you need to manually add a user to Cognito and assign them the Admin role -> do this via the app client in Cognito and click “View sign-in page” so that the user is already confirmed
 
-10. Create a stack with the new resources from the BatchBucketTemplate in CloudFormation
+9. Create a stack with the new resources from the BatchBucketTemplate in CloudFormation
 
-11. Create a stack with the new resources from the RestAPITemplate in CloudFormation
+10. Create a stack with the new resources from the RestAPITemplate in CloudFormation
 
-12. In HeartBeatTemplate change ->
+11. In HeartBeatTemplate change ->
 
     ARN of the role with which you want to instantiate the services
 
@@ -43,9 +43,9 @@ Note: for CloudFormation -> Template source: upload a template file -> submit
     "arn:aws:execute-api:us-east-1:216698350696:3we4sfdvrh/authorizers/vy1o5f"
     replace 216698350696 with your own ID, 3we4sfdvrh with the API ID, and vy1o5f with the authorizer ID for the specific authorizer
 
-13. Create a stack with the new resources from the HeartBeatTemplate in CloudFormation
+12. Create a stack with the new resources from the HeartBeatTemplate in CloudFormation
 
-14. Manually add an S3 trigger for the splitBatchData Lambda function ->
+13. Manually add an S3 trigger for the splitBatchData Lambda function ->
 
     On splitBatchData click the “Add trigger” button
 
@@ -57,11 +57,11 @@ Note: for CloudFormation -> Template source: upload a template file -> submit
 
     Accept using the S3 bucket for both input and output
 
-15. Modify the HTTP calls to API Gateway in the HTML files
+14. Modify the HTTP calls to API Gateway in the HTML files
 
-16. Put the HTML files into the frontend bucket, select them all, and via Actions make all pages public using ACL
+15. Put the HTML files into the frontend bucket, select them all, and via Actions make all pages public using ACL
 
-17. If you want to test the streamingMQTT.py script
+16. If you want to test the streamingMQTT.py script
 
     Generate and download the certificates for the already instantiated thing
 
@@ -73,5 +73,5 @@ Note: for CloudFormation -> Template source: upload a template file -> submit
 
     Run the script from a directory containing the certificates as well
 
-18. If you want to test the batchMQTT.py script run it inside CloudShell
+17. If you want to test the batchMQTT.py script run it inside CloudShell
 Note: for the scripts data to be processed there must be an entry in the IoTPatient DynamoDB table with deviceId=IoTSimulator
