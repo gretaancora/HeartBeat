@@ -26,7 +26,7 @@ To execute the project follow the next steps:
 
 7. Create a stack with the new resources from the CognitoTemplate in CloudFormation
 
-Note: for CloudFormation -> Template source: upload a template file -> submit
+    Note: for CloudFormation -> Template source: upload a template file -> submit
 
 8. If you want to test the admin features you need to manually add a user to Cognito and assign them the Admin role -> do this via the app client in Cognito and click “View sign-in page” so that the user is already confirmed
 
