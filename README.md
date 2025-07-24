@@ -1,4 +1,9 @@
-Steps to deploy:
+# Serverless Heart Rate Streaming And Batch Processing Architecture
+This repository contains the final project for the course of Distributed Systems and Cloud Computing of the University of Rome Tor Vergata (faculty Computer Engineering).
+
+To execute the project follow the next steps:
+
+## Create the AWS Environment
 1. Create a bucket and upload the Lambda zip to it -> heart-beat-lambda-deployment (leave all settings at default)
 
 2. In the Swagger file find ID 216698350696 and replace it with your own
@@ -61,7 +66,8 @@ Note: for CloudFormation -> Template source: upload a template file -> submit
 
 15. Put the HTML files into the frontend bucket, select them all, and via Actions make all pages public using ACL
 
-16. If you want to test the streamingMQTT.py script
+## Run the code
+1. If you want to test the streamingMQTT.py script
 
     Generate and download the certificates for the already instantiated thing
 
@@ -73,5 +79,5 @@ Note: for CloudFormation -> Template source: upload a template file -> submit
 
     Run the script from a directory containing the certificates as well
 
-17. If you want to test the batchMQTT.py script run it inside CloudShell
+2. If you want to test the batchMQTT.py script run it inside CloudShell
 Note: for the scripts data to be processed there must be an entry in the IoTPatient DynamoDB table with deviceId=IoTSimulator
