@@ -80,4 +80,5 @@ To execute the project follow the next steps:
     Run the script from a directory containing the certificates as well
 
 2. If you want to test the batchMQTT.py script run it inside CloudShell
+
 Note: for the scripts data to be processed there must be an entry in the IoTPatient DynamoDB table with deviceId=IoTSimulator
